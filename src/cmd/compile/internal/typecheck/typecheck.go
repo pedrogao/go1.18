@@ -473,7 +473,7 @@ func indexlit(n ir.Node) ir.Node {
 // typecheck1 should ONLY be called from typecheck.
 func typecheck1(n ir.Node, top int) ir.Node {
 	if n, ok := n.(*ir.Name); ok {
-		typecheckdef(n)
+		typecheckdef(n) // 检查定义
 	}
 
 	switch n.Op() {
@@ -539,23 +539,23 @@ func typecheck1(n ir.Node, top int) ir.Node {
 	case ir.OTYPE:
 		return n
 
-	case ir.OTSLICE:
+	case ir.OTSLICE: // 切片
 		n := n.(*ir.SliceType)
 		return tcSliceType(n)
 
-	case ir.OTARRAY:
+	case ir.OTARRAY: // 数组
 		n := n.(*ir.ArrayType)
 		return tcArrayType(n)
 
-	case ir.OTMAP:
+	case ir.OTMAP: // 哈希表
 		n := n.(*ir.MapType)
 		return tcMapType(n)
 
-	case ir.OTCHAN:
+	case ir.OTCHAN: // channel
 		n := n.(*ir.ChanType)
 		return tcChanType(n)
 
-	case ir.OTSTRUCT:
+	case ir.OTSTRUCT: // struct
 		n := n.(*ir.StructType)
 		return tcStructType(n)
 

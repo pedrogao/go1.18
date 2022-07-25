@@ -30,6 +30,11 @@ const (
 	debugChan = false
 )
 
+// 注意：channel 的核心是发送者、接受者双队列，一个缓冲区
+// 队列、缓冲区相互影响者阻塞
+// 另外 channel 为 nil，或者已被关闭，那么都非常危险
+// 已关闭的 channel 如果再发送就会 panic，但接受仍能正常工作
+// 但是当已关闭的 channel 缓冲区被消费完后，再接收就会直接返回 false
 type hchan struct {
 	qcount   uint           // total data in the queue
 	dataqsiz uint           // size of the circular queue
@@ -160,7 +165,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
 	if c == nil {
 		if !block {
 			return false
-		}
+		} // 如果 channel 为 nil，那么直接调用 gopark 休眠 goroutine，那么 goroutine 就会一直阻塞，因此不要对空 channel 操作
 		gopark(nil, nil, waitReasonChanSendNilChan, traceEvGoStop, 2)
 		throw("unreachable")
 	}
@@ -189,7 +194,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
 	// channel wasn't closed during the first observation. However, nothing here
 	// guarantees forward progress. We rely on the side effects of lock release in
 	// chanrecv() and closechan() to update this thread's view of c.closed and full().
-	if !block && c.closed == 0 && full(c) {
+	if !block && c.closed == 0 && full(c) { // channel 已满，返回 false
 		return false
 	}
 
@@ -200,19 +205,19 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
 
 	lock(&c.lock)
 
-	if c.closed != 0 {
+	if c.closed != 0 { // channel 已经被 close了，那么无法再接收数据
 		unlock(&c.lock)
-		panic(plainError("send on closed channel"))
+		panic(plainError("send on closed channel")) // 直接 panic，因此千万别往已经 close 的 channel 再发数据
 	}
 
-	if sg := c.recvq.dequeue(); sg != nil {
+	if sg := c.recvq.dequeue(); sg != nil { // 如果接受者队列中有等待的 receiver，那么取出 receiver，并直接将数据 ep 交给 receiver
 		// Found a waiting receiver. We pass the value we want to send
 		// directly to the receiver, bypassing the channel buffer (if any).
 		send(c, sg, ep, func() { unlock(&c.lock) }, 3)
 		return true
 	}
 
-	if c.qcount < c.dataqsiz {
+	if c.qcount < c.dataqsiz { // 如果还有缓冲区间，那么将 ep 放入缓冲区中
 		// Space is available in the channel buffer. Enqueue the element to send.
 		qp := chanbuf(c, c.sendx)
 		if raceenabled {
@@ -225,10 +230,10 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
 		}
 		c.qcount++
 		unlock(&c.lock)
-		return true
+		return true // 放入完成后，返回 true
 	}
 
-	if !block {
+	if !block { // 如果缓冲区已满，且非阻塞操作，那么直接解锁，然后返回 false
 		unlock(&c.lock)
 		return false
 	}
@@ -242,14 +247,14 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
 	}
 	// No stack splits between assigning elem and enqueuing mysg
 	// on gp.waiting where copystack can find it.
-	mysg.elem = ep
+	mysg.elem = ep // 将数据挂到 gp 上
 	mysg.waitlink = nil
 	mysg.g = gp
 	mysg.isSelect = false
 	mysg.c = c
 	gp.waiting = mysg
 	gp.param = nil
-	c.sendq.enqueue(mysg)
+	c.sendq.enqueue(mysg) // 调用 send 的 goroutine 由于无法将数据发送到 channel，因此会被休眠，然后加入发送者等待队列
 	// Signal to anyone trying to shrink our stack that we're about
 	// to park on a channel. The window between when this G's status
 	// changes and when we set gp.activeStackChans is not safe for
@@ -354,12 +359,12 @@ func recvDirect(t *_type, sg *sudog, dst unsafe.Pointer) {
 }
 
 func closechan(c *hchan) {
-	if c == nil {
+	if c == nil { // 为空 panic
 		panic(plainError("close of nil channel"))
 	}
 
 	lock(&c.lock)
-	if c.closed != 0 {
+	if c.closed != 0 { // 二次关闭 panic
 		unlock(&c.lock)
 		panic(plainError("close of closed channel"))
 	}
@@ -374,7 +379,7 @@ func closechan(c *hchan) {
 
 	var glist gList
 
-	// release all readers
+	// release all readers  唤醒所有接受者
 	for {
 		sg := c.recvq.dequeue()
 		if sg == nil {
@@ -396,7 +401,7 @@ func closechan(c *hchan) {
 		glist.push(gp)
 	}
 
-	// release all writers (they will panic)
+	// release all writers (they will panic) 唤醒所有发送者
 	for {
 		sg := c.sendq.dequeue()
 		if sg == nil {
@@ -417,7 +422,7 @@ func closechan(c *hchan) {
 	unlock(&c.lock)
 
 	// Ready all Gs now that we've dropped the channel lock.
-	for !glist.empty() {
+	for !glist.empty() { // 直到所有发送者、接受者全部处理完成
 		gp := glist.pop()
 		gp.schedlink = 0
 		goready(gp, 3)
@@ -459,17 +464,17 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)
 	if debugChan {
 		print("chanrecv: chan=", c, "\n")
 	}
-
+	// 如果 channel 为空
 	if c == nil {
-		if !block {
+		if !block { // 非阻塞操作则直接返回 false
 			return
-		}
+		} // 将调用者永久休眠
 		gopark(nil, nil, waitReasonChanReceiveNilChan, traceEvGoStop, 2)
 		throw("unreachable")
 	}
 
 	// Fast path: check for failed non-blocking operation without acquiring the lock.
-	if !block && empty(c) {
+	if !block && empty(c) { // 非阻塞，且缓冲区为空
 		// After observing that the channel is not ready for receiving, we observe whether the
 		// channel is closed.
 		//
@@ -479,7 +484,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)
 		// we use atomic loads for both checks, and rely on emptying and closing to happen in
 		// separate critical sections under the same lock.  This assumption fails when closing
 		// an unbuffered channel with a blocked send, but that is an error condition anyway.
-		if atomic.Load(&c.closed) == 0 {
+		if atomic.Load(&c.closed) == 0 { // 未关闭，直接返回
 			// Because a channel cannot be reopened, the later observation of the channel
 			// being not closed implies that it was also not closed at the moment of the
 			// first observation. We behave as if we observed the channel at that moment
@@ -506,8 +511,8 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)
 		t0 = cputicks()
 	}
 
-	lock(&c.lock)
-
+	lock(&c.lock) // 加锁
+	// channel 已关闭，且 channel 为空
 	if c.closed != 0 && c.qcount == 0 {
 		if raceenabled {
 			raceacquire(c.raceaddr())
@@ -518,16 +523,16 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)
 		}
 		return true, false
 	}
-
+	// 如果发送队列中，有发送者等待
 	if sg := c.sendq.dequeue(); sg != nil {
 		// Found a waiting sender. If buffer is size 0, receive value
 		// directly from sender. Otherwise, receive from head of queue
 		// and add sender's value to the tail of the queue (both map to
 		// the same buffer slot because the queue is full).
-		recv(c, sg, ep, func() { unlock(&c.lock) }, 3)
+		recv(c, sg, ep, func() { unlock(&c.lock) }, 3) // 将数据直接给等待者
 		return true, true
 	}
-
+	// 如果缓冲区中有数据，且发送队列中没有等待者
 	if c.qcount > 0 {
 		// Receive directly from queue
 		qp := chanbuf(c, c.recvx)
@@ -535,23 +540,23 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)
 			racenotify(c, c.recvx, nil)
 		}
 		if ep != nil {
-			typedmemmove(c.elemtype, ep, qp)
+			typedmemmove(c.elemtype, ep, qp) // 将数据加入缓冲区
 		}
 		typedmemclr(c.elemtype, qp)
 		c.recvx++
 		if c.recvx == c.dataqsiz {
 			c.recvx = 0
 		}
-		c.qcount--
+		c.qcount-- // 移动指针
 		unlock(&c.lock)
 		return true, true
 	}
 
-	if !block {
+	if !block { // 非阻塞模式
 		unlock(&c.lock)
 		return false, false
 	}
-
+	// 如果没有缓冲区，且队列中也没用等待的接受者，那么只能将当前 goroutine 休眠等待了
 	// no sender available: block on this channel.
 	gp := getg()
 	mysg := acquireSudog()
@@ -568,13 +573,13 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)
 	mysg.isSelect = false
 	mysg.c = c
 	gp.param = nil
-	c.recvq.enqueue(mysg)
+	c.recvq.enqueue(mysg) // 加入等待队列
 	// Signal to anyone trying to shrink our stack that we're about
 	// to park on a channel. The window between when this G's status
 	// changes and when we set gp.activeStackChans is not safe for
 	// stack shrinking.
 	atomic.Store8(&gp.parkingOnChan, 1)
-	gopark(chanparkcommit, unsafe.Pointer(&c.lock), waitReasonChanReceive, traceEvGoBlockRecv, 2)
+	gopark(chanparkcommit, unsafe.Pointer(&c.lock), waitReasonChanReceive, traceEvGoBlockRecv, 2) // 休眠
 
 	// someone woke us up
 	if mysg != gp.waiting {

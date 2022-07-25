@@ -140,7 +140,7 @@ func Main(archInit func(*ssagen.ArchInfo)) {
 	}
 
 	types.ParseLangFlag()
-
+	// ssa 中间代码
 	symABIs := ssagen.NewSymABIs(base.Ctxt.Pkgpath)
 	if base.Flag.SymABIs != "" {
 		symABIs.ReadSymABIs(base.Flag.SymABIs)

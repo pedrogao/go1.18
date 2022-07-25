@@ -138,7 +138,7 @@ func tcSliceType(n *ir.SliceType) ir.Node {
 	if n.Elem.Type() == nil {
 		return n
 	}
-	t := types.NewSlice(n.Elem.Type())
+	t := types.NewSlice(n.Elem.Type()) // 新建切片
 	n.SetOTYPE(t)
 	types.CheckSize(t)
 	return n

@@ -28,6 +28,7 @@ import (
 	"cmd/internal/src"
 )
 
+// LoadPackage 加载包，解析源代码文件
 func LoadPackage(filenames []string) {
 	base.Timer.Start("fe", "parse")
 
@@ -41,7 +42,7 @@ func LoadPackage(filenames []string) {
 
 	// Limit the number of simultaneously open files.
 	sem := make(chan struct{}, runtime.GOMAXPROCS(0)+10)
-
+	// 并发解析
 	noders := make([]*noder, len(filenames))
 	for i, filename := range filenames {
 		p := noder{
@@ -67,7 +68,7 @@ func LoadPackage(filenames []string) {
 			p.file, _ = syntax.Parse(fbase, f, p.error, p.pragma, mode) // errors are tracked via p.error
 		}()
 	}
-
+	// 收集报错信息
 	var lines uint
 	for _, p := range noders {
 		for e := range p.err {
@@ -95,7 +96,7 @@ func LoadPackage(filenames []string) {
 		p.node()
 		p.file = nil // release memory
 	}
-
+	// 语法错误
 	if base.SyntaxErrors() != 0 {
 		base.ErrorExit()
 	}
