@@ -197,6 +197,7 @@ func (e *emptyCtx) String() string {
 }
 
 var (
+	// 享元模式，所有都是空，就可以使用同一个实例
 	background = new(emptyCtx)
 	todo       = new(emptyCtx)
 )
@@ -233,6 +234,7 @@ func WithCancel(parent Context) (ctx Context, cancel CancelFunc) {
 	if parent == nil {
 		panic("cannot create context from nil parent")
 	}
+	// 新建一个新的 cancel context
 	c := newCancelCtx(parent)
 	propagateCancel(parent, &c)
 	return &c, func() { c.cancel(true, Canceled) }
@@ -249,37 +251,39 @@ var goroutines int32
 // propagateCancel arranges for child to be canceled when parent is.
 func propagateCancel(parent Context, child canceler) {
 	done := parent.Done()
-	if done == nil {
+	if done == nil { // 返回 nil, 说明 parent 是 emptyCtx，那么永远无法 cancel
 		return // parent is never canceled
 	}
-
+	// 等待 parent 取消
 	select {
-	case <-done:
+	case <-done: // 如果 parent 超时，那么 cancel child，并且携带 parent cancel 的错误信息，即撤销向子节点传递
 		// parent is already canceled
-		child.cancel(false, parent.Err())
+		child.cancel(false, parent.Err()) // 撤销孩子节点，从父节点开始向下传播
 		return
-	default:
+	default: // 未撤销，继续向下
 	}
-
+	// 从 parent 的孩子节点中找到 cancelCtx
 	if p, ok := parentCancelCtx(parent); ok {
-		p.mu.Lock()
+		p.mu.Lock() // 加锁
 		if p.err != nil {
 			// parent has already been canceled
+			// 如果 parent 已经 canceled，那么孩子节点也要 cancel
 			child.cancel(false, p.err)
 		} else {
-			if p.children == nil {
+			if p.children == nil { // 孩子节点为空，那么新建 map
 				p.children = make(map[canceler]struct{})
 			}
-			p.children[child] = struct{}{}
+			p.children[child] = struct{}{} // 挂载孩子节点
 		}
 		p.mu.Unlock()
 	} else {
+		// 如果没有找到
 		atomic.AddInt32(&goroutines, +1)
 		go func() {
 			select {
-			case <-parent.Done():
+			case <-parent.Done(): // 等待父节点撤销
 				child.cancel(false, parent.Err())
-			case <-child.Done():
+			case <-child.Done(): // 子节点撤销
 			}
 		}()
 	}
@@ -295,14 +299,15 @@ var cancelCtxKey int
 // has been wrapped in a custom implementation providing a
 // different done channel, in which case we should not bypass it.)
 func parentCancelCtx(parent Context) (*cancelCtx, bool) {
-	done := parent.Done()
+	done := parent.Done() // 如果 parent 已经撤销了，那么无法撤销，那么直接返回 false
 	if done == closedchan || done == nil {
 		return nil, false
 	}
-	p, ok := parent.Value(&cancelCtxKey).(*cancelCtx)
+	p, ok := parent.Value(&cancelCtxKey).(*cancelCtx) // 找到了 cancel 子节点
 	if !ok {
 		return nil, false
 	}
+	// 如果找到了能撤销的字节点，但是父、子撤销的不是同一个，也返回false
 	pdone, _ := p.done.Load().(chan struct{})
 	if pdone != done {
 		return nil, false
@@ -318,7 +323,7 @@ func removeChild(parent Context, child canceler) {
 	}
 	p.mu.Lock()
 	if p.children != nil {
-		delete(p.children, child)
+		delete(p.children, child) // 删除取消的孩子节点
 	}
 	p.mu.Unlock()
 }
@@ -358,7 +363,7 @@ func (c *cancelCtx) Value(key any) any {
 func (c *cancelCtx) Done() <-chan struct{} {
 	d := c.done.Load()
 	if d != nil {
-		return d.(chan struct{})
+		return d.(chan struct{}) // channel
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -410,7 +415,7 @@ func (c *cancelCtx) cancel(removeFromParent bool, err error) {
 	} else {
 		close(d)
 	}
-	for child := range c.children {
+	for child := range c.children { // 依次取消孩子节点
 		// NOTE: acquiring the child's lock while holding parent's lock.
 		child.cancel(false, err)
 	}
@@ -451,7 +456,7 @@ func WithDeadline(parent Context, d time.Time) (Context, CancelFunc) {
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.err == nil {
+	if c.err == nil { // 定时任务，注意：timer 是一次性的
 		c.timer = time.AfterFunc(dur, func() {
 			c.cancel(true, DeadlineExceeded)
 		})
@@ -560,10 +565,10 @@ func (c *valueCtx) String() string {
 }
 
 func (c *valueCtx) Value(key any) any {
-	if c.key == key {
+	if c.key == key { // 当前层就有 key
 		return c.val
 	}
-	return value(c.Context, key)
+	return value(c.Context, key) // 否则向 parent 查找
 }
 
 func value(c Context, key any) any {
@@ -573,9 +578,9 @@ func value(c Context, key any) any {
 			if key == ctx.key {
 				return ctx.val
 			}
-			c = ctx.Context
+			c = ctx.Context // 若未找到，再次递归查找
 		case *cancelCtx:
-			if key == &cancelCtxKey {
+			if key == &cancelCtxKey { // cancel context
 				return c
 			}
 			c = ctx.Context
@@ -587,7 +592,7 @@ func value(c Context, key any) any {
 		case *emptyCtx:
 			return nil
 		default:
-			return c.Value(key)
+			return c.Value(key) // 其它，尝试调用 Value
 		}
 	}
 }
