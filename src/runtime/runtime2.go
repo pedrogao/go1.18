@@ -938,8 +938,8 @@ type _defer struct {
 	// defers. We have only one defer record for the entire frame (which may
 	// currently have 0, 1, or more defers active).
 	openDefer bool
-	sp        uintptr // sp at time of defer
-	pc        uintptr // pc at time of defer
+	sp        uintptr // sp at time of defer 栈指针
+	pc        uintptr // pc at time of defer 调用方的程序计数器
 	fn        func()  // can be nil for open-coded defers
 	_panic    *_panic // panic that is running defer
 	link      *_defer // next defer on G; can point to either heap or stack!

@@ -62,6 +62,8 @@ x, ok := <-c
 - runtime.selectnbrecv2
 - runtime.chansend
 
+参考 [select examples](./select)
+
 
 
 

@@ -179,8 +179,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		pollorder[j] = uint16(i)
 		norder++
 	}
-	pollorder = pollorder[:norder]
-	lockorder = lockorder[:norder]
+	pollorder = pollorder[:norder] // 轮询顺序，乱序
+	lockorder = lockorder[:norder] // 加锁顺序，case顺序
 
 	// sort the cases by Hchan address to get the locking order.
 	// simple heap sort, to guarantee n log n time and constant stack footprint.
@@ -228,6 +228,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 	}
 
 	// lock all the channels involved in the select
+	// channels 依次加锁
 	sellock(scases, lockorder)
 
 	var (
@@ -241,7 +242,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		nextp  **sudog
 	)
 
-	// pass 1 - look for something already waiting
+	// pass 1 - look for something already waiting 找 reader、writer
 	var casi int
 	var cas *scase
 	var caseSuccess bool
@@ -253,7 +254,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		c = cas.c
 
 		if casi >= nsends {
-			sg = c.sendq.dequeue()
+			sg = c.sendq.dequeue() // 有 reader
 			if sg != nil {
 				goto recv
 			}
@@ -286,7 +287,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		goto retc
 	}
 
-	// pass 2 - enqueue on all chans
+	// pass 2 - enqueue on all chans 当前 coroutine 入等待队列
 	gp = getg()
 	if gp.waiting != nil {
 		throw("gp.waiting != nil")
