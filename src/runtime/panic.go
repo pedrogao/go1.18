@@ -239,8 +239,8 @@ func deferproc(fn func()) {
 		throw("deferproc: d.panic != nil after newdefer")
 	}
 	d.link = gp._defer
-	gp._defer = d
-	d.fn = fn
+	gp._defer = d // 链表向下插入
+	d.fn = fn     // 设置函数
 	d.pc = getcallerpc()
 	// We must not be preempted between calling getcallersp and
 	// storing it to d.sp because getcallersp's result is a
@@ -408,7 +408,7 @@ func freedeferfn() {
 func deferreturn() {
 	gp := getg()
 	for {
-		d := gp._defer
+		d := gp._defer // 链表依次调用
 		if d == nil {
 			return
 		}
@@ -788,7 +788,7 @@ func gopanic(e any) {
 
 	var p _panic
 	p.arg = e
-	p.link = gp._panic
+	p.link = gp._panic // 加入链表
 	gp._panic = (*_panic)(noescape(unsafe.Pointer(&p)))
 
 	atomic.Xadd(&runningPanicDefers, 1)
@@ -796,22 +796,22 @@ func gopanic(e any) {
 	// By calculating getcallerpc/getcallersp here, we avoid scanning the
 	// gopanic frame (stack scanning is slow...)
 	addOneOpenDeferFrame(gp, getcallerpc(), unsafe.Pointer(getcallersp()))
-
+	// panic 时，依次调用 defer 函数
 	for {
 		d := gp._defer
-		if d == nil {
+		if d == nil { // break
 			break
 		}
 
 		// If defer was started by earlier panic or Goexit (and, since we're back here, that triggered a new panic),
 		// take defer off list. An earlier panic will not continue running, but we will make sure below that an
 		// earlier Goexit does continue running.
-		if d.started {
+		if d.started { // goroutine 已经 panic 过了
 			if d._panic != nil {
 				d._panic.aborted = true
 			}
 			d._panic = nil
-			if !d.openDefer {
+			if !d.openDefer { // TODO 开发编码
 				// For open-coded defers, we need to process the
 				// defer again, in case there are any other defers
 				// to call in the frame (not including the defer
@@ -834,14 +834,14 @@ func gopanic(e any) {
 		d._panic = (*_panic)(noescape(unsafe.Pointer(&p)))
 
 		done := true
-		if d.openDefer {
+		if d.openDefer { // 如果是开放编码，那么在栈上调用内联 defer
 			done = runOpenDeferFrame(gp, d)
 			if done && !d._panic.recovered {
 				addOneOpenDeferFrame(gp, 0, nil)
 			}
 		} else {
 			p.argp = unsafe.Pointer(getargp())
-			d.fn()
+			d.fn() // 调用 recover
 		}
 		p.argp = nil
 
@@ -861,7 +861,7 @@ func gopanic(e any) {
 			gp._defer = d.link
 			freedefer(d)
 		}
-		if p.recovered {
+		if p.recovered { // 处理 recover
 			gp._panic = p.link
 			if gp._panic != nil && gp._panic.goexit && gp._panic.aborted {
 				// A normal recover would bypass/abort the Goexit.  Instead,
@@ -938,7 +938,7 @@ func gopanic(e any) {
 	// and String methods to prepare the panic strings before startpanic.
 	preprintpanics(gp._panic)
 
-	fatalpanic(gp._panic) // should not return
+	fatalpanic(gp._panic) // should not return 程序 crash
 	*(*int)(nil) = 0      // not reached
 }
 
@@ -967,8 +967,8 @@ func gorecover(argp uintptr) any {
 	gp := getg()
 	p := gp._panic
 	if p != nil && !p.goexit && !p.recovered && argp == uintptr(p.argp) {
-		p.recovered = true
-		return p.arg
+		p.recovered = true // 判断 recovered 字段即可
+		return p.arg       // 返回 panic 参数
 	}
 	return nil
 }
