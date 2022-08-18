@@ -1160,6 +1160,8 @@ func (p *noder) stmtFall(stmt syntax.Stmt, fallOK bool) ir.Node {
 		return p.ifStmt(stmt)
 	case *syntax.ForStmt:
 		return p.forStmt(stmt)
+	case *syntax.UntilStmt:
+		return p.untilStmt(stmt)
 	case *syntax.SwitchStmt:
 		return p.switchStmt(stmt)
 	case *syntax.SelectStmt:
@@ -1276,6 +1278,34 @@ func (p *noder) forStmt(stmt *syntax.ForStmt) ir.Node {
 
 	n := ir.NewForStmt(p.pos(stmt), p.stmt(stmt.Init), p.expr(stmt.Cond), p.stmt(stmt.Post), p.blockStmt(stmt.Body))
 	p.closeAnotherScope()
+	return n
+}
+
+// untilStmt converts the concrete syntax tree node UntilStmt into an AST
+// node.
+func (p *noder) untilStmt(stmt *syntax.UntilStmt) ir.Node {
+	p.openScope(stmt.Pos()) // open ir scope
+	if r, ok := stmt.Init.(*syntax.RangeClause); ok {
+		if stmt.Cond != nil {
+			panic("unexpected RangeClause")
+		}
+
+		n := ir.NewRangeStmt(p.pos(r), nil, nil, p.expr(r.X), nil)
+		if r.Lhs != nil {
+			n.Def = r.Def
+			lhs := p.assignList(r.Lhs, n, n.Def)
+			n.Key = lhs[0]
+			if len(lhs) > 1 {
+				n.Value = lhs[1]
+			}
+		}
+		n.Body = p.blockStmt(stmt.Body)
+		p.closeAnotherScope()
+		return n
+	}
+
+	n := ir.NewUntilStmt(p.pos(stmt), p.stmt(stmt.Init), p.expr(stmt.Cond), p.blockStmt(stmt.Body))
+	p.closeAnotherScope() // close scope
 	return n
 }
 

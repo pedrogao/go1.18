@@ -410,6 +410,19 @@ type (
 		stmt
 	}
 
+	/**
+	init、cond 均可省略
+	until <init>; <cond> {
+	  <body>
+	}
+	*/
+	UntilStmt struct {
+		Init SimpleStmt // incl. *RangeClause
+		Cond Expr
+		Body *BlockStmt
+		stmt
+	}
+
 	SwitchStmt struct {
 		Init   SimpleStmt
 		Tag    Expr // incl. *TypeSwitchGuard

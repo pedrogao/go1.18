@@ -222,6 +222,34 @@ func (n *ForStmt) SetOp(op Op) {
 	n.op = op
 }
 
+// A UntilStmt is a non-range for loop: for Init; Cond; { Body }
+type UntilStmt struct {
+	miniStmt
+	Label    *types.Sym
+	Cond     Node
+	Body     Nodes
+	HasBreak bool // break in body
+}
+
+// New until statement
+func NewUntilStmt(pos src.XPos, init Node, cond Node, body []Node) *UntilStmt {
+	n := &UntilStmt{Cond: cond} // condition
+	n.pos = pos
+	n.op = OUNTIL
+	if init != nil { // init
+		n.init = []Node{init}
+	}
+	n.Body = body // body
+	return n
+}
+
+func (n *UntilStmt) SetOp(op Op) {
+	if op != OUNTIL {
+		panic(n.no("SetOp " + op.String()))
+	}
+	n.op = op
+}
+
 // A GoDeferStmt is a go or defer statement: go Call / defer Call.
 //
 // The two opcodes use a single syntax because the implementations

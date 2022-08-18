@@ -50,6 +50,7 @@ var OpNames = []string{
 	OEQ:          "==",
 	OFALL:        "fallthrough",
 	OFOR:         "for",
+	OUNTIL:       "until",
 	OFORUNTIL:    "foruntil", // not actual syntax; used to avoid off-end pointer live on backedge.892
 	OGE:          ">=",
 	OGOTO:        "goto",
@@ -441,6 +442,27 @@ func stmtFmt(n Node, s fmt.State) {
 
 		if n.Op() == OFORUNTIL && len(n.Late) != 0 {
 			fmt.Fprintf(s, "; %v", n.Late)
+		}
+
+		fmt.Fprintf(s, " { %v }", n.Body)
+
+	case OUNTIL:
+		n := n.(*UntilStmt)
+		opname := "until"
+		if !exportFormat {
+			fmt.Fprintf(s, "%s loop", opname)
+			break
+		}
+
+		fmt.Fprint(s, opname)
+		if simpleinit {
+			fmt.Fprintf(s, " %v;", n.Init()[0])
+		}
+		if n.Cond != nil {
+			fmt.Fprintf(s, " %v", n.Cond)
+		}
+		if simpleinit {
+			fmt.Fprint(s, ";")
 		}
 
 		fmt.Fprintf(s, " { %v }", n.Body)

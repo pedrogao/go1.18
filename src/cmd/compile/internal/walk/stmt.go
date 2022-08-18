@@ -126,6 +126,10 @@ func walkStmt(n ir.Node) ir.Node {
 		n := n.(*ir.ForStmt)
 		return walkFor(n)
 
+	case ir.OUNTIL:
+		n := n.(*ir.UntilStmt)
+		return walkUntil(n)
+
 	case ir.OIF:
 		n := n.(*ir.IfStmt)
 		return walkIf(n)
@@ -191,6 +195,19 @@ func walkFor(n *ir.ForStmt) ir.Node {
 	}
 	walkStmtList(n.Body)
 	return n
+}
+
+// workUntil walks an OUNTIL node
+func walkUntil(n *ir.UntilStmt) ir.Node {
+	if n.Cond != nil {
+		init := ir.TakeInit(n.Cond)
+		walkStmtList(init)
+		// 将 until node 重写为 for node
+		n.Cond = ir.NewUnaryExpr(base.Pos, ir.ONOT, walkExpr(n.Cond, &init))
+		n.Cond = ir.InitExpr(init, n.Cond)
+	}
+	walkStmtList(n.Body)
+	return ir.NewForStmt(n.Pos(), nil, n.Cond, nil, n.Body)
 }
 
 // validGoDeferCall reports whether call is a valid call to appear in

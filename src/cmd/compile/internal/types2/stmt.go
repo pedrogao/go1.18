@@ -652,6 +652,22 @@ func (check *Checker) stmt(ctxt stmtContext, s syntax.Stmt) {
 		}
 		check.stmt(inner, s.Body)
 
+	case *syntax.UntilStmt:
+		inner |= breakOk | continueOk
+
+		check.openScope(s, "until")
+		defer check.closeScope()
+
+		check.simpleStmt(s.Init)
+		if s.Cond != nil {
+			var x operand
+			check.expr(&x, s.Cond)
+			if x.mode != invalid && !allBoolean(x.typ) {
+				check.error(s.Cond, "non-boolean condition in for statement")
+			}
+		}
+		check.stmt(inner, s.Body)
+
 	default:
 		check.error(s, "invalid statement")
 	}
