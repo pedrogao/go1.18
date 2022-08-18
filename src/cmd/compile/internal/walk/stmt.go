@@ -203,11 +203,11 @@ func walkUntil(n *ir.UntilStmt) ir.Node {
 		init := ir.TakeInit(n.Cond)
 		walkStmtList(init)
 		// 将 until node 重写为 for node
-		n.Cond = ir.NewUnaryExpr(base.Pos, ir.ONOT, walkExpr(n.Cond, &init))
+		n.Cond = walkExpr(n.Cond, &init)
 		n.Cond = ir.InitExpr(init, n.Cond)
 	}
 	walkStmtList(n.Body)
-	return ir.NewForStmt(n.Pos(), nil, n.Cond, nil, n.Body)
+	return n
 }
 
 // validGoDeferCall reports whether call is a valid call to appear in
