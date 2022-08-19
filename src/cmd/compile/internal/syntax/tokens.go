@@ -50,7 +50,7 @@ const (
 	_Else        // else
 	_Fallthrough // fallthrough
 	_For         // for
-	_Until       // until  新增
+	_Until       // until
 	_Func        // func
 	_Go          // go
 	_Goto        // goto
@@ -61,6 +61,7 @@ const (
 	_Package     // package
 	_Range       // range
 	_Return      // return
+	_Ereturn     // ereturn
 	_Select      // select
 	_Struct      // struct
 	_Switch      // switch

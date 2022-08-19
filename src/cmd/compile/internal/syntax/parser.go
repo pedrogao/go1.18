@@ -2687,6 +2687,57 @@ func (p *parser) stmtOrNil() Stmt {
 		}
 		return s
 
+	case _Ereturn:
+		pos := p.pos()
+		e := new(ReturnStmt)
+		e.pos = pos
+		p.next()
+		if p.tok != _Semi && p.tok != _Rbrace {
+			e.Results = p.exprList()
+		}
+		// return block
+		b1 := new(BlockStmt)
+		b1.pos = pos
+		b1.Rbrace = pos
+		b1.List = []Stmt{e}
+
+		set := false
+		f := new(IfStmt)
+		f.pos = pos
+		switch ep := e.Results.(type) {
+		case *ListExpr:
+			if len(ep.ElemList) > 0 {
+				if eep, ok := ep.ElemList[len(ep.ElemList)-1].(*Name);
+					ok && strings.HasPrefix(eep.Value, "err") {
+					op := &Operation{
+						Op: Neq,
+						X:  eep,
+						Y:  NewName(pos, "nil"),
+					}
+					op.pos = pos
+					f.Cond = op
+					set = true
+				}
+			}
+		case *Name:
+			if strings.HasPrefix(ep.Value, "err") {
+				op := &Operation{
+					Op: Neq,
+					X:  ep,
+					Y:  NewName(pos, "nil"),
+				}
+				op.pos = pos
+				f.Cond = op
+				set = true
+			}
+		}
+		f.Then = b1
+		if set {
+			return f
+		} else {
+			return e
+		}
+
 	case _Semi:
 		s := new(EmptyStmt)
 		s.pos = p.pos()
