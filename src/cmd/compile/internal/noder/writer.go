@@ -937,6 +937,10 @@ func (w *writer) stmt1(stmt syntax.Stmt) {
 		w.code(stmtFor)
 		w.forStmt(stmt)
 
+	case *syntax.DoWhileStmt:
+		w.code(stmtDoWhile)
+		w.doWhileStmt(stmt)
+
 	case *syntax.IfStmt:
 		w.code(stmtIf)
 		w.ifStmt(stmt)
@@ -1057,6 +1061,18 @@ func (w *writer) forStmt(stmt *syntax.ForStmt) {
 		w.expr(stmt.Cond)
 		w.stmt(stmt.Post)
 	}
+
+	w.blockStmt(stmt.Body)
+	w.closeAnotherScope()
+}
+
+func (w *writer) doWhileStmt(stmt *syntax.DoWhileStmt) {
+	w.sync(syncDoWhileStmt)
+	w.openScope(stmt.Pos())
+
+	w.pos(stmt)
+	w.stmt(stmt.Init)
+	w.expr(stmt.Cond)
 
 	w.blockStmt(stmt.Body)
 	w.closeAnotherScope()

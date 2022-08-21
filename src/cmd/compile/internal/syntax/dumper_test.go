@@ -19,3 +19,13 @@ func TestDump(t *testing.T) {
 		Fdump(testOut(), ast)
 	}
 }
+
+func TestDump1(t *testing.T) {
+	file := "./lab/dowhile/example1/main.go"
+	ast, _ := ParseFile(file,
+		func(err error) { t.Error(err) }, nil, CheckBranches|AllowGenerics)
+
+	if ast != nil {
+		Fdump(testOut(), ast)
+	}
+}

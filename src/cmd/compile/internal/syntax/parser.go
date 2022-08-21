@@ -2369,7 +2369,6 @@ func (p *parser) header1(keyword token) (init SimpleStmt, cond Expr) {
 	}
 	p.want(_Semi)
 	condStmt = p.simpleStmt(nil, 0)
-	p.want(_Semi)
 	switch s := condStmt.(type) {
 	case nil:
 		b := new(BadExpr)

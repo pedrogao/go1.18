@@ -1900,6 +1900,59 @@ func (s *state) stmt(n ir.Node) {
 
 		s.startBlock(bEnd)
 
+	case ir.ODOWHILE: // do { Body } while Init; Cond;
+		n := n.(*ir.DoWhileStmt)
+		bCond := s.f.NewBlock(ssa.BlockPlain)
+		bBody := s.f.NewBlock(ssa.BlockPlain)
+		bEnd := s.f.NewBlock(ssa.BlockPlain)
+
+		bBody.Pos = n.Pos()
+
+		// first, entry jump to the condition
+		b := s.endBlock()
+		b.AddEdgeTo(bCond)
+		// generate code to test condition
+		s.startBlock(bCond)
+		if n.Cond != nil {
+			s.condBranch(n.Cond, bEnd, bBody, 1)
+		} else {
+			b := s.endBlock()
+			b.Kind = ssa.BlockPlain
+			b.AddEdgeTo(bBody)
+		}
+
+		// set up for continue/break in body
+		prevContinue := s.continueTo
+		prevBreak := s.breakTo
+		s.continueTo = bCond
+		s.breakTo = bEnd
+		var lab *ssaLabel
+		if sym := n.Label; sym != nil {
+			// labeled until loop
+			lab = s.label(sym)
+			lab.continueTarget = bCond
+			lab.breakTarget = bEnd
+		}
+
+		// generate body
+		s.startBlock(bBody)
+		s.stmtList(n.Body)
+
+		// tear down continue/break
+		s.continueTo = prevContinue
+		s.breakTo = prevBreak
+		if lab != nil {
+			lab.continueTarget = nil
+			lab.breakTarget = nil
+		}
+
+		// done with body, goto cond
+		if b := s.endBlock(); b != nil {
+			b.AddEdgeTo(bCond)
+		}
+
+		s.startBlock(bEnd)
+
 	case ir.OSWITCH, ir.OSELECT:
 		// These have been mostly rewritten by the front end into their Nbody fields.
 		// Our main task is to correctly hook up any break statements.

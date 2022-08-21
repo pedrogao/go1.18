@@ -126,6 +126,7 @@ const (
 	syncBlockStmt
 	syncIfStmt
 	syncForStmt
+	syncDoWhileStmt
 	syncSwitchStmt
 	syncRangeStmt
 	syncCaseClause

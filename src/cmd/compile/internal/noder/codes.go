@@ -78,6 +78,7 @@ const (
 	stmtReturn
 	stmtIf
 	stmtFor
+	stmtDoWhile
 	stmtSwitch
 	stmtSelect
 

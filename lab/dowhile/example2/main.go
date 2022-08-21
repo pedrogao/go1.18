@@ -10,4 +10,5 @@ func main() {
 		fmt.Println(i)
 		i--
 	} while ; i > 0;
+	fmt.Println(i)
 }

@@ -9,4 +9,5 @@ func main() {
 		fmt.Println(i)
 		i--
 	} while i := 10; i > 0;
+	fmt.Println(i)
 }

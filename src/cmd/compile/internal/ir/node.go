@@ -268,7 +268,6 @@ const (
 	OFALL     // fallthrough
 	OFOR      // for Init; Cond; Post { Body }
 	OUNTIL    // until Ninit; Left { Nbody }
-	ODOWHILE  // do { Body } while Init; Cond;
 	// OFORUNTIL is like OFOR, but the test (Cond) is applied after the body:
 	// 	Init
 	// 	top: { Body }   // Execute the body at least once
@@ -334,6 +333,9 @@ const (
 	OGETCALLERSP // runtime.getcallersp() (stack pointer in caller frame)
 
 	OEND
+	// 放在最后，避免包缓存引起的编译失败，即 .a 包文件都是旧的 opcode 编译来的
+	// 如果放在中间，opcode 就会冲突
+	ODOWHILE // do { Body } while Init; Cond;
 )
 
 // IsCmp reports whether op is a comparison operation (==, !=, <, <=,
