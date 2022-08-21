@@ -40,28 +40,30 @@ func _() {
 	_ = x[_Fallthrough-30]
 	_ = x[_For-31]
 	_ = x[_Until-32]
-	_ = x[_Func-33]
-	_ = x[_Go-34]
-	_ = x[_Goto-35]
-	_ = x[_If-36]
-	_ = x[_Import-37]
-	_ = x[_Interface-38]
-	_ = x[_Map-39]
-	_ = x[_Package-40]
-	_ = x[_Range-41]
-	_ = x[_Return-42]
-	_ = x[_Ereturn-43]
-	_ = x[_Select-44]
-	_ = x[_Struct-45]
-	_ = x[_Switch-46]
-	_ = x[_Type-47]
-	_ = x[_Var-48]
-	_ = x[tokenCount-49]
+	_ = x[_Do-33]
+	_ = x[_While-34]
+	_ = x[_Func-35]
+	_ = x[_Go-36]
+	_ = x[_Goto-37]
+	_ = x[_If-38]
+	_ = x[_Import-39]
+	_ = x[_Interface-40]
+	_ = x[_Map-41]
+	_ = x[_Package-42]
+	_ = x[_Range-43]
+	_ = x[_Return-44]
+	_ = x[_Ereturn-45]
+	_ = x[_Select-46]
+	_ = x[_Struct-47]
+	_ = x[_Switch-48]
+	_ = x[_Type-49]
+	_ = x[_Var-50]
+	_ = x[tokenCount-51]
 }
 
-const _token_name = "EOFnameliteralopop=opop=:=<-*([{)]},;:....breakcasechanconstcontinuedefaultdeferelsefallthroughforuntilfuncgogotoifimportinterfacemappackagerangereturnereturnselectstructswitchtypevar"
+const _token_name = "EOFnameliteralopop=opop=:=<-*([{)]},;:....breakcasechanconstcontinuedefaultdeferelsefallthroughforuntildowhilefuncgogotoifimportinterfacemappackagerangereturnereturnselectstructswitchtypevar"
 
-var _token_index = [...]uint8{0, 3, 7, 14, 16, 19, 23, 24, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 42, 47, 51, 55, 60, 68, 75, 80, 84, 95, 98, 103, 107, 109, 113, 115, 121, 130, 133, 140, 145, 151, 158, 164, 170, 176, 180, 183, 183}
+var _token_index = [...]uint8{0, 3, 7, 14, 16, 19, 23, 24, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 42, 47, 51, 55, 60, 68, 75, 80, 84, 95, 98, 103, 105, 110, 114, 116, 120, 122, 128, 137, 140, 147, 152, 158, 165, 171, 177, 183, 187, 190, 190}
 
 func (i token) String() string {
 	i -= 1

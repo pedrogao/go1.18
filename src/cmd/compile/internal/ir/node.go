@@ -268,6 +268,7 @@ const (
 	OFALL     // fallthrough
 	OFOR      // for Init; Cond; Post { Body }
 	OUNTIL    // until Ninit; Left { Nbody }
+	ODOWHILE  // do { Body } while Init; Cond;
 	// OFORUNTIL is like OFOR, but the test (Cond) is applied after the body:
 	// 	Init
 	// 	top: { Body }   // Execute the body at least once

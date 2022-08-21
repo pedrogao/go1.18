@@ -423,6 +423,19 @@ type (
 		stmt
 	}
 
+	/**
+	init、cond 均可省略
+	do {
+	  <body>
+	} while <init>; <cond>;
+	*/
+	DoWhileStmt struct {
+		Init SimpleStmt // incl. *RangeClause
+		Cond Expr
+		Body *BlockStmt
+		stmt
+	}
+
 	SwitchStmt struct {
 		Init   SimpleStmt
 		Tag    Expr // incl. *TypeSwitchGuard

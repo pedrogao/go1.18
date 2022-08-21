@@ -250,6 +250,34 @@ func (n *UntilStmt) SetOp(op Op) {
 	n.op = op
 }
 
+// A DoWhileStmt is a non-range for loop: do { Body } while Init; Cond;
+type DoWhileStmt struct {
+	miniStmt
+	Label    *types.Sym
+	Cond     Node
+	Body     Nodes
+	HasBreak bool // break in body
+}
+
+// New do while statement
+func NewDoWhileStmt(pos src.XPos, init Node, cond Node, body []Node) *DoWhileStmt {
+	n := &DoWhileStmt{Cond: cond} // condition
+	n.pos = pos
+	n.op = ODOWHILE
+	if init != nil { // init
+		n.init = []Node{init}
+	}
+	n.Body = body // body
+	return n
+}
+
+func (n *DoWhileStmt) SetOp(op Op) {
+	if op != ODOWHILE {
+		panic(n.no("SetOp " + op.String()))
+	}
+	n.op = op
+}
+
 // A GoDeferStmt is a go or defer statement: go Call / defer Call.
 //
 // The two opcodes use a single syntax because the implementations

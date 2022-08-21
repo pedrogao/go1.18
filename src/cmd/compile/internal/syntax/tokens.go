@@ -51,6 +51,8 @@ const (
 	_Fallthrough // fallthrough
 	_For         // for
 	_Until       // until
+	_Do          // do
+	_While       // while
 	_Func        // func
 	_Go          // go
 	_Goto        // goto

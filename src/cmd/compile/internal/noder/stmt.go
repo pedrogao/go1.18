@@ -120,6 +120,8 @@ func (g *irgen) stmt(stmt syntax.Stmt) ir.Node {
 		return g.forStmt(stmt)
 	case *syntax.UntilStmt:
 		return g.untilStmt(stmt)
+	case *syntax.DoWhileStmt:
+		return g.doWhileStmt(stmt)
 	case *syntax.SelectStmt:
 		n := g.selectStmt(stmt)
 
@@ -264,6 +266,10 @@ func (g *irgen) forStmt(stmt *syntax.ForStmt) ir.Node {
 
 func (g *irgen) untilStmt(stmt *syntax.UntilStmt) ir.Node {
 	return ir.NewUntilStmt(g.pos(stmt), g.stmt(stmt.Init), g.expr(stmt.Cond), g.blockStmt(stmt.Body))
+}
+
+func (g *irgen) doWhileStmt(stmt *syntax.DoWhileStmt) ir.Node {
+	return ir.NewDoWhileStmt(g.pos(stmt), g.stmt(stmt.Init), g.expr(stmt.Cond), g.blockStmt(stmt.Body))
 }
 
 func (g *irgen) selectStmt(stmt *syntax.SelectStmt) ir.Node {
