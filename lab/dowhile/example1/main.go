@@ -5,9 +5,8 @@ import (
 )
 
 func main() {
-	do {
+	dowhile i := 4; i > 0 {
 		fmt.Println(i)
 		i--
-	} while i := 10; i > 0;
-	fmt.Println(i)
+	}
 }

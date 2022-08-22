@@ -85,7 +85,7 @@ func _() {
 	_ = x[syncBlockStmt-75]
 	_ = x[syncIfStmt-76]
 	_ = x[syncForStmt-77]
-	_ = x[syncDoWhileStmt-78]
+	_ = x[syncDowhileStmt-78]
 	_ = x[syncSwitchStmt-79]
 	_ = x[syncRangeStmt-80]
 	_ = x[syncCaseClause-81]
@@ -144,7 +144,7 @@ func _() {
 	_ = x[syncObjectName-134]
 }
 
-const _syncMarker_name = "NodeBoolInt64Uint64StringPosPkgSymSelectorKindTypeTypePkgSignatureParamOpObjectExprStmtDeclConstDeclFuncDeclTypeDeclVarDeclPragmaValueEOFMethodFuncBodyUseUseObjObjectIdxTypeIdxBOFEntryOpenScopeCloseScopeGlobalLocalDefineDefLocalUseLocalDefGlobalUseGlobalTypeParamsUseLabelDefLabelFuncLitCommonFuncBodyRefLinksymExtHackSetlinenoNameImportDeclDeclNamesDeclNameExprListExprsWrapnameTypeExprTypeExprOrNilChanDirParamsCloseAnotherScopeSumUnOpBinOpStructTypeInterfaceTypePacknameEmbeddedStmtsStmtsFallStmtFallBlockStmtIfStmtForStmtDoWhileStmtSwitchStmtRangeStmtCaseClauseCommClauseSelectStmtDeclsLabeledStmtCompLit1234NDefImplicitUseNameUseObjLocalAddLocalBothSignatureSetUnderlyingLinknameStmt1StmtsEndDeclareTopDeclsTopConstDeclTopFuncDeclTopTypeDeclTopVarDeclObject1AddBodyLabelFuncExtMethExtOptLabelScalarStmtDeclsDeclLocalObjLocalObjLocal1DeclareLocalPublicPrivateRelocsRelocUseRelocVarExtPkgDefTypeExtValCodeObjPosBaseLocalIdentTypeParamNamesTypeParamBoundsImplicitTypesObjectName"
+const _syncMarker_name = "NodeBoolInt64Uint64StringPosPkgSymSelectorKindTypeTypePkgSignatureParamOpObjectExprStmtDeclConstDeclFuncDeclTypeDeclVarDeclPragmaValueEOFMethodFuncBodyUseUseObjObjectIdxTypeIdxBOFEntryOpenScopeCloseScopeGlobalLocalDefineDefLocalUseLocalDefGlobalUseGlobalTypeParamsUseLabelDefLabelFuncLitCommonFuncBodyRefLinksymExtHackSetlinenoNameImportDeclDeclNamesDeclNameExprListExprsWrapnameTypeExprTypeExprOrNilChanDirParamsCloseAnotherScopeSumUnOpBinOpStructTypeInterfaceTypePacknameEmbeddedStmtsStmtsFallStmtFallBlockStmtIfStmtForStmtDowhileStmtSwitchStmtRangeStmtCaseClauseCommClauseSelectStmtDeclsLabeledStmtCompLit1234NDefImplicitUseNameUseObjLocalAddLocalBothSignatureSetUnderlyingLinknameStmt1StmtsEndDeclareTopDeclsTopConstDeclTopFuncDeclTopTypeDeclTopVarDeclObject1AddBodyLabelFuncExtMethExtOptLabelScalarStmtDeclsDeclLocalObjLocalObjLocal1DeclareLocalPublicPrivateRelocsRelocUseRelocVarExtPkgDefTypeExtValCodeObjPosBaseLocalIdentTypeParamNamesTypeParamBoundsImplicitTypesObjectName"
 
 var _syncMarker_index = [...]uint16{0, 4, 8, 13, 19, 25, 28, 31, 34, 42, 46, 50, 57, 66, 71, 73, 79, 83, 87, 91, 100, 108, 116, 123, 129, 134, 137, 143, 151, 154, 160, 169, 176, 179, 184, 193, 203, 209, 214, 220, 228, 236, 245, 254, 264, 272, 280, 287, 297, 304, 314, 318, 327, 331, 341, 350, 358, 366, 371, 379, 387, 400, 407, 413, 430, 433, 437, 442, 452, 465, 473, 481, 486, 495, 503, 512, 518, 525, 536, 546, 555, 565, 575, 585, 590, 601, 608, 609, 610, 611, 612, 613, 624, 631, 642, 650, 663, 676, 684, 689, 697, 704, 712, 724, 735, 746, 756, 763, 770, 775, 782, 789, 797, 803, 812, 821, 829, 838, 850, 856, 863, 869, 874, 882, 888, 894, 901, 904, 911, 918, 928, 942, 957, 970, 980}
 

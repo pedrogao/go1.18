@@ -469,7 +469,7 @@ func stmtFmt(n Node, s fmt.State) {
 		fmt.Fprintf(s, " { %v }", n.Body)
 
 	case ODOWHILE:
-		n := n.(*DoWhileStmt)
+		n := n.(*DowhileStmt)
 		opname := "dowhile"
 		if !exportFormat {
 			fmt.Fprintf(s, "%s loop", opname)

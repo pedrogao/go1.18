@@ -335,7 +335,7 @@ const (
 	OEND
 	// 放在最后，避免包缓存引起的编译失败，即 .a 包文件都是旧的 opcode 编译来的
 	// 如果放在中间，opcode 就会冲突
-	ODOWHILE // do { Body } while Init; Cond;
+	ODOWHILE // dowhile Init; Cond { Body };
 )
 
 // IsCmp reports whether op is a comparison operation (==, !=, <, <=,

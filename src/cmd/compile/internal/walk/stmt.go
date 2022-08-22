@@ -131,8 +131,8 @@ func walkStmt(n ir.Node) ir.Node {
 		return walkUntil(n)
 
 	case ir.ODOWHILE:
-		n := n.(*ir.DoWhileStmt)
-		return walkDoWhile(n)
+		n := n.(*ir.DowhileStmt)
+		return walkDowhile(n)
 
 	case ir.OIF:
 		n := n.(*ir.IfStmt)
@@ -214,8 +214,9 @@ func walkUntil(n *ir.UntilStmt) ir.Node {
 	return n
 }
 
-func walkDoWhile(n *ir.DoWhileStmt) ir.Node {
-	// TODO 完成 do while
+func walkDowhile(n *ir.DowhileStmt) ir.Node {
+	// AST 重写、添加信息
+	// 1 判断条件
 	if n.Cond != nil {
 		init := ir.TakeInit(n.Cond)
 		walkStmtList(init)
@@ -223,6 +224,7 @@ func walkDoWhile(n *ir.DoWhileStmt) ir.Node {
 		n.Cond = walkExpr(n.Cond, &init)
 		n.Cond = ir.InitExpr(init, n.Cond)
 	}
+	// 2 再走 body
 	walkStmtList(n.Body)
 	return n
 }

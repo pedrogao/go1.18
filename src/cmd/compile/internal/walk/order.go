@@ -815,7 +815,7 @@ func (o *orderState) stmt(n ir.Node) {
 
 	// 处理 OUNTIL
 	case ir.ODOWHILE:
-		n := n.(*ir.DoWhileStmt)
+		n := n.(*ir.DowhileStmt)
 		t := o.markTemp()
 		n.Cond = o.exprInPlace(n.Cond)
 		n.Body.Prepend(o.cleanTempNoPop(t)...)

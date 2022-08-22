@@ -463,14 +463,14 @@ func (n *Decl) editChildren(edit func(Node) Node) {
 	}
 }
 
-func (n *DoWhileStmt) Format(s fmt.State, verb rune) { fmtNode(n, s, verb) }
-func (n *DoWhileStmt) copy() Node {
+func (n *DowhileStmt) Format(s fmt.State, verb rune) { fmtNode(n, s, verb) }
+func (n *DowhileStmt) copy() Node {
 	c := *n
 	c.init = copyNodes(c.init)
 	c.Body = copyNodes(c.Body)
 	return &c
 }
-func (n *DoWhileStmt) doChildren(do func(Node) bool) bool {
+func (n *DowhileStmt) doChildren(do func(Node) bool) bool {
 	if doNodes(n.init, do) {
 		return true
 	}
@@ -482,7 +482,7 @@ func (n *DoWhileStmt) doChildren(do func(Node) bool) bool {
 	}
 	return false
 }
-func (n *DoWhileStmt) editChildren(edit func(Node) Node) {
+func (n *DowhileStmt) editChildren(edit func(Node) Node) {
 	editNodes(n.init, edit)
 	if n.Cond != nil {
 		n.Cond = edit(n.Cond).(Node)

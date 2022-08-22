@@ -425,11 +425,11 @@ type (
 
 	/**
 	init、cond 均可省略
-	do {
+	dowhile <init>; <cond> {
 	  <body>
-	} while <init>; <cond>;
+	}
 	*/
-	DoWhileStmt struct {
+	DowhileStmt struct {
 		Init SimpleStmt // incl. *RangeClause
 		Cond Expr
 		Body *BlockStmt

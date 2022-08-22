@@ -21,7 +21,7 @@ func TestDump(t *testing.T) {
 }
 
 func TestDump1(t *testing.T) {
-	file := "./lab/dowhile/example1/main.go"
+	file := "./lab/dowhile/example2/main.go"
 	ast, _ := ParseFile(file,
 		func(err error) { t.Error(err) }, nil, CheckBranches|AllowGenerics)
 

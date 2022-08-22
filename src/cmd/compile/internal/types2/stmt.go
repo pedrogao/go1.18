@@ -668,7 +668,7 @@ func (check *Checker) stmt(ctxt stmtContext, s syntax.Stmt) {
 		}
 		check.stmt(inner, s.Body)
 
-	case *syntax.DoWhileStmt:
+	case *syntax.DowhileStmt:
 		inner |= breakOk | continueOk
 
 		check.openScope(s, "do while")

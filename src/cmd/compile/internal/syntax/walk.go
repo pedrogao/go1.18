@@ -298,7 +298,7 @@ func (w walker) node(n Node) {
 		}
 		w.node(n.Body)
 
-	case *DoWhileStmt: // 新增
+	case *DowhileStmt: // 新增
 		if n.Init != nil {
 			w.node(n.Init)
 		}

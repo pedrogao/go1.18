@@ -250,8 +250,8 @@ func (n *UntilStmt) SetOp(op Op) {
 	n.op = op
 }
 
-// A DoWhileStmt is a non-range for loop: do { Body } while Init; Cond;
-type DoWhileStmt struct {
+// A DowhileStmt is a non-range for loop: dowhile Init; Cond { Body }
+type DowhileStmt struct {
 	miniStmt
 	Label    *types.Sym
 	Cond     Node
@@ -259,9 +259,9 @@ type DoWhileStmt struct {
 	HasBreak bool // break in body
 }
 
-// New do while statement
-func NewDoWhileStmt(pos src.XPos, init Node, cond Node, body []Node) *DoWhileStmt {
-	n := &DoWhileStmt{Cond: cond} // condition
+// New dowhile statement
+func NewDowhileStmt(pos src.XPos, init Node, cond Node, body []Node) *DowhileStmt {
+	n := &DowhileStmt{Cond: cond} // condition
 	n.pos = pos
 	n.op = ODOWHILE
 	if init != nil { // init
@@ -271,7 +271,7 @@ func NewDoWhileStmt(pos src.XPos, init Node, cond Node, body []Node) *DoWhileStm
 	return n
 }
 
-func (n *DoWhileStmt) SetOp(op Op) {
+func (n *DowhileStmt) SetOp(op Op) {
 	if op != ODOWHILE {
 		panic(n.no("SetOp " + op.String()))
 	}

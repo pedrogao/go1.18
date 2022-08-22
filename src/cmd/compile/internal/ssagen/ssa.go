@@ -1900,16 +1900,17 @@ func (s *state) stmt(n ir.Node) {
 
 		s.startBlock(bEnd)
 
-	case ir.ODOWHILE: // do { Body } while Init; Cond;
-		n := n.(*ir.DoWhileStmt)
+	case ir.ODOWHILE: // dowhile Init; Cond { Body };
+		// TODO 更改 ssa 生成
+		n := n.(*ir.DowhileStmt)
 		bCond := s.f.NewBlock(ssa.BlockPlain)
 		bBody := s.f.NewBlock(ssa.BlockPlain)
 		bEnd := s.f.NewBlock(ssa.BlockPlain)
 
 		bBody.Pos = n.Pos()
-
-		// first, entry jump to the condition
+		// 上一个 block
 		b := s.endBlock()
+		// 上一个紧接着 condition，因此 for 无法达到 dowhile 的效果
 		b.AddEdgeTo(bCond)
 		// generate code to test condition
 		s.startBlock(bCond)
@@ -1921,24 +1922,24 @@ func (s *state) stmt(n ir.Node) {
 			b.AddEdgeTo(bBody)
 		}
 
-		// set up for continue/break in body
+		// 设置 continue 和 break
 		prevContinue := s.continueTo
 		prevBreak := s.breakTo
 		s.continueTo = bCond
 		s.breakTo = bEnd
 		var lab *ssaLabel
 		if sym := n.Label; sym != nil {
-			// labeled until loop
+			// labeled do while loop
 			lab = s.label(sym)
 			lab.continueTarget = bCond
 			lab.breakTarget = bEnd
 		}
 
-		// generate body
+		// 生成 body ssa
 		s.startBlock(bBody)
 		s.stmtList(n.Body)
 
-		// tear down continue/break
+		// 关闭 continue/break
 		s.continueTo = prevContinue
 		s.breakTo = prevBreak
 		if lab != nil {

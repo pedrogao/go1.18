@@ -87,7 +87,7 @@ func (e *escape) stmt(n ir.Node) {
 		e.loopDepth--
 
 	case ir.ODOWHILE:
-		n := n.(*ir.DoWhileStmt)
+		n := n.(*ir.DowhileStmt)
 		e.loopDepth++
 		e.discard(n.Cond)
 		e.block(n.Body)

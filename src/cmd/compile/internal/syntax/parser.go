@@ -2342,50 +2342,18 @@ func (p *parser) untilStmt() Stmt {
 	return s
 }
 
-func (p *parser) doWhileStmt() Stmt {
+func (p *parser) dowhileStmt() Stmt {
 	if trace {
-		defer p.trace("doWhileStmt")()
+		defer p.trace("dowhileStmt")()
 	}
 
-	s := new(DoWhileStmt)
+	s := new(DowhileStmt)
 	s.pos = p.pos()
-	// 1. 先消费掉 do 关键字
-	p.want(_Do)
-	// 2. 解析 body
-	s.Body = p.blockStmt("do while clause")
-	// 3. 解析 while 后面的初始化、条件语句
-	s.Init, s.Cond = p.header1(_While)
+
+	s.Init, s.Cond, _ = p.header(_Dowhile)
+	s.Body = p.blockStmt("dowhile clause")
 
 	return s
-}
-
-func (p *parser) header1(keyword token) (init SimpleStmt, cond Expr) {
-	p.want(keyword)
-
-	var condStmt SimpleStmt
-	if p.tok != _Semi {
-		// 有 init
-		init = p.simpleStmt(nil, keyword)
-	}
-	p.want(_Semi)
-	condStmt = p.simpleStmt(nil, 0)
-	switch s := condStmt.(type) {
-	case nil:
-		b := new(BadExpr)
-		b.pos = p.pos()
-		cond = b
-	case *ExprStmt:
-		cond = s.X
-	default:
-		var str string
-		if as, ok := s.(*AssignStmt); ok && as.Op == 0 {
-			str = "assignment (" + String(as.Lhs) + ") = (" + String(as.Rhs) + ")"
-		} else {
-			str = String(s)
-		}
-		p.syntaxErrorAt(s.Pos(), fmt.Sprintf("cannot use %s as value", str))
-	}
-	return
 }
 
 func (p *parser) header(keyword token) (init SimpleStmt, cond Expr, post SimpleStmt) {
@@ -2687,8 +2655,8 @@ func (p *parser) stmtOrNil() Stmt {
 	case _Until: // 新增 Until
 		return p.untilStmt()
 
-	case _Do: // 新增 do while
-		return p.doWhileStmt()
+	case _Dowhile: // 新增 dowhile
+		return p.dowhileStmt()
 
 	case _Switch:
 		return p.switchStmt()
