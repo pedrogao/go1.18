@@ -1901,57 +1901,31 @@ func (s *state) stmt(n ir.Node) {
 		s.startBlock(bEnd)
 
 	case ir.ODOWHILE: // dowhile Init; Cond { Body };
-		// TODO 更改 ssa 生成
+		// TODO 增加 break、continue 支持
 		n := n.(*ir.DowhileStmt)
 		bCond := s.f.NewBlock(ssa.BlockPlain)
 		bBody := s.f.NewBlock(ssa.BlockPlain)
 		bEnd := s.f.NewBlock(ssa.BlockPlain)
-
 		bBody.Pos = n.Pos()
 		// 上一个 block
 		b := s.endBlock()
-		// 上一个紧接着 condition，因此 for 无法达到 dowhile 的效果
+		// 上一个紧接着 body, dowhile 的效果
+		b.AddEdgeTo(bBody)
+		// 处理 body
+		s.startBlock(bBody)
+		s.stmtList(n.Body)
+		b = s.endBlock()
+		// 条件处理
 		b.AddEdgeTo(bCond)
-		// generate code to test condition
 		s.startBlock(bCond)
 		if n.Cond != nil {
-			s.condBranch(n.Cond, bEnd, bBody, 1)
+			s.condBranch(n.Cond, bBody, bEnd, 1)
 		} else {
 			b := s.endBlock()
 			b.Kind = ssa.BlockPlain
 			b.AddEdgeTo(bBody)
 		}
-
-		// 设置 continue 和 break
-		prevContinue := s.continueTo
-		prevBreak := s.breakTo
-		s.continueTo = bCond
-		s.breakTo = bEnd
-		var lab *ssaLabel
-		if sym := n.Label; sym != nil {
-			// labeled do while loop
-			lab = s.label(sym)
-			lab.continueTarget = bCond
-			lab.breakTarget = bEnd
-		}
-
-		// 生成 body ssa
-		s.startBlock(bBody)
-		s.stmtList(n.Body)
-
-		// 关闭 continue/break
-		s.continueTo = prevContinue
-		s.breakTo = prevBreak
-		if lab != nil {
-			lab.continueTarget = nil
-			lab.breakTarget = nil
-		}
-
-		// done with body, goto cond
-		if b := s.endBlock(); b != nil {
-			b.AddEdgeTo(bCond)
-		}
-
+		// 结束
 		s.startBlock(bEnd)
 
 	case ir.OSWITCH, ir.OSELECT:
